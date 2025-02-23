@@ -75,7 +75,3 @@ The application provides three REST endpoints for reward calculations:
    ```sh
    curl -X GET "http://localhost:8080/lifetime?userId=1"
    ```
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
