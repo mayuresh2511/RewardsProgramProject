@@ -1,0 +1,30 @@
+****This is a simple Spring Boot App that calculates Reward points for user based on transaction amount.***
+
+    Rewards Calculation logic:-
+        1) For each dollar spent by user between 50 to 100 user will get one reward point per transaction.
+            i.e( User spent $70 then reward points will be 70-50 = 20.)
+        2) For each dollar spent by user above 100 user will get two reward points per transaction.
+            i.e( User spent $120 then reward points will be ((120 - 100) * 2) + 50 = 90.)
+
+**This Repo contains a data.sql file which contains the sample data and loads in H2 in memory database while application start-up.
+
+**Application has a RewardsController which serves three end points :-
+    1)"/lifetime" (getLifetimeRewards) -
+        This endpoint calculates the rewards for a user for entire lifetime. And gives total and montWise reward points
+        in response. It takes 'userId' as query parameter.
+    2)"/lastThreeMonths" (getLastThreeMonthRewards) -
+        This endpoint calculates the rewards for a user for recent last three months. And gives total and montWise reward points
+        in response. It takes 'userId' as query parameter.
+    3)"/specifiedPeriod" (getRewardsForGivenPeriod) -
+        This endpoint calculates the rewards for a user for specified period. And gives total and montWise reward points
+        in response. It takes 'userId', 'startDate' and 'endDate' as query parameter.
+
+**Application has a RewardsServiceImpl class which has all the business logic to calculate the rewards and talks with
+    database using the RewardsRepository.
+
+**Application also has GlobalException handling which captures all the runtime exceptions and returns a custom error
+    response.
+
+**Unit testing tests the service layer of application by mocking the Repository layer. And Integration testing tests the
+    end-to-end working of application.
+
