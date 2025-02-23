@@ -52,8 +52,8 @@ The application provides three REST endpoints for reward calculations:
 ### Running the Application
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-repo/spring-boot-rewards.git
-   cd spring-boot-rewards
+   git clone https://github.com/mayuresh2511/RewardsProgramProject.git
+   cd RewardsProgramProject
    ```
 2. Build the project:
    ```sh
@@ -63,6 +63,13 @@ The application provides three REST endpoints for reward calculations:
    ```sh
    mvn spring-boot:run
    ```
+   OR
+   ```sh
+   docker build -t spring-boot-rewards .
+   ```
+   ```sh
+   ddocker run -d -p 8080:8080 --name rewards-project spring-boot-rewards
+   ```
 4. Access H2 Database Console:
    - URL: `http://localhost:8080/h2-console`
    - JDBC URL: `jdbc:h2:mem:testdb`
@@ -71,7 +78,15 @@ The application provides three REST endpoints for reward calculations:
 
 ### API Testing
 - You can test the API using **Postman** or **cURL**.
-- Example request:
+- Example request GET /lifetime:
    ```sh
-   curl -X GET "http://localhost:8080/lifetime?userId=1"
+   curl -X GET "http://localhost:8080/rewards/api/lifetime?userId=Mayuresh"
+   ```
+- Example request GET /lastThreeMonths:
+   ```sh
+   curl -X GET "http://localhost:8080/rewards/api/lastThreeMonths?userId=Mayuresh"
+   ```
+- Example request GET /specifiedPeriod:
+   ```sh
+   curl -X GET "http://localhost:8080/rewards/api/specifiedPeriod?userId=Mayuresh&startDate=2025-01-01&endDate=2025-02-28"
    ```
