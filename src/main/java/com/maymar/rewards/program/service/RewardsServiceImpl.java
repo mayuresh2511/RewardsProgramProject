@@ -2,6 +2,8 @@ package com.maymar.rewards.program.service;
 
 import com.maymar.rewards.program.dto.RewardsResponseDto;
 import com.maymar.rewards.program.entity.CustomerTransactionsEntity;
+import com.maymar.rewards.program.exception.custom.InvalidUserIdException;
+import com.maymar.rewards.program.exception.custom.NoTransactionsFoundException;
 import com.maymar.rewards.program.repository.RewardsRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +24,17 @@ public class RewardsServiceImpl implements RewardsService{
     @Override
     public RewardsResponseDto calculateLifetimeRewards(String userId) {
 
+        if (userId.trim().isEmpty() || userId.trim().length() > 20)
+            throw new InvalidUserIdException("Please enter a valid userId. Non empty and less than 20 chars..");
+
         List<CustomerTransactionsEntity> customerTransactions = rewardsRepository.
                 findByUserId(userId).
                 orElseThrow();
 
-        final Map<String, Integer> resultMap = getResultMap(customerTransactions);
+        if (customerTransactions.isEmpty())
+            throw new NoTransactionsFoundException("There are no transactions present for userId " + userId);
 
-        return new RewardsResponseDto(userId,
-                resultMap,
-                resultMap.values().stream().mapToInt(Integer::intValue).sum(),
-                LocalDate.now()
-        );
+        return processAndPrepareResponse(customerTransactions, userId);
     }
 
     @Override
@@ -46,34 +48,34 @@ public class RewardsServiceImpl implements RewardsService{
 
     @Override
     public RewardsResponseDto calculateRewardsForGivenPeriod(String userId, String startDateString, String endDateString) {
-        //String startDateString = "2025-01-01";
-        LocalDate startDate = LocalDate.parse(startDateString);
 
-        //String endDateString = "2025-02-28";
+        if (userId.trim().isEmpty() || userId.trim().length() > 20)
+            throw new InvalidUserIdException("Please enter a valid userId. Non empty and less than 20 chars..");
+
+        LocalDate startDate = LocalDate.parse(startDateString);
         LocalDate endDate = LocalDate.parse(endDateString);
 
         List<CustomerTransactionsEntity> customerTransactions = rewardsRepository.
                 findByUserIdAndDateRange(userId, startDate, endDate).
                 orElseThrow();
 
-        final Map<String, Integer> resultMap = getResultMap(customerTransactions);
+        if (customerTransactions.isEmpty())
+            throw new NoTransactionsFoundException("There are no transactions present for userId " + userId);
 
-        return new RewardsResponseDto(userId,
-                resultMap,
-                resultMap.values().stream().mapToInt(Integer::intValue).sum(),
-                LocalDate.now()
-        );
+        return processAndPrepareResponse(customerTransactions, userId);
     }
 
-    private static Map<String, Integer> getResultMap(List<CustomerTransactionsEntity> customerTransactions) {
+    private static RewardsResponseDto processAndPrepareResponse(List<CustomerTransactionsEntity> customerTransactions, String userId) {
         //To Group the Transactions By Month-Year pair
         Map<String, List<CustomerTransactionsEntity>> groupedByMonth = customerTransactions.stream()
                 .collect(Collectors.groupingBy(
-                        transaction -> transaction.getTranDate().getMonth().toString() + "-" + transaction.getTranDate().getYear()
+                        transaction -> transaction.getTranDate().getMonth().toString() +
+                                "-" +
+                                transaction.getTranDate().getYear()
                 ));
 
         //To Get The total for each Month-Year pair
-        return groupedByMonth.entrySet().stream()
+        Map<String, Integer> resultMap = groupedByMonth.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         (entry) -> {
@@ -89,5 +91,11 @@ public class RewardsServiceImpl implements RewardsService{
                                     }).mapToInt(Integer::intValue).sum();
                         })
                 );
+
+        return new RewardsResponseDto(userId,
+                resultMap,
+                resultMap.values().stream().mapToInt(Integer::intValue).sum(),
+                LocalDate.now()
+        );
     }
 }
