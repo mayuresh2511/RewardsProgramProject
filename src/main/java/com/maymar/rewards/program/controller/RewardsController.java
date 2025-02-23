@@ -17,6 +17,11 @@ public class RewardsController {
         this.rewardsService = rewardsService;
     }
 
+    @GetMapping("/lifetime")
+    public RewardsResponseDto getLifetimeRewards(@RequestParam("userId") String userId){
+        return rewardsService.calculateLifetimeRewards(userId);
+    }
+
     @GetMapping("/lastThreeMonths")
     public RewardsResponseDto getLastThreeMonthRewards(@RequestParam("userId") String userId){
         return rewardsService.calculateRewardsForLastThreeMonths(userId);
