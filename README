@@ -1,30 +1,81 @@
-****This is a simple Spring Boot App that calculates Reward points for user based on transaction amount.***
+# Spring Boot Rewards Calculation Application
 
-    Rewards Calculation logic:-
-        1) For each dollar spent by user between 50 to 100 user will get one reward point per transaction.
-            i.e( User spent $70 then reward points will be 70-50 = 20.)
-        2) For each dollar spent by user above 100 user will get two reward points per transaction.
-            i.e( User spent $120 then reward points will be ((120 - 100) * 2) + 50 = 90.)
+This is a simple Spring Boot application that calculates reward points for users based on their transaction amounts.
 
-**This Repo contains a data.sql file which contains the sample data and loads in H2 in memory database while application start-up.
+## Rewards Calculation Logic
 
-**Application has a RewardsController which serves three end points :-
-    1)"/lifetime" (getLifetimeRewards) -
-        This endpoint calculates the rewards for a user for entire lifetime. And gives total and montWise reward points
-        in response. It takes 'userId' as query parameter.
-    2)"/lastThreeMonths" (getLastThreeMonthRewards) -
-        This endpoint calculates the rewards for a user for recent last three months. And gives total and montWise reward points
-        in response. It takes 'userId' as query parameter.
-    3)"/specifiedPeriod" (getRewardsForGivenPeriod) -
-        This endpoint calculates the rewards for a user for specified period. And gives total and montWise reward points
-        in response. It takes 'userId', 'startDate' and 'endDate' as query parameter.
+1. **Spending between $50 and $100:**
+   - Users earn **1 reward point** per dollar spent between **$50 and $100**.
+   - Example: If a user spends **$70**, they earn **(70 - 50) = 20 points**.
 
-**Application has a RewardsServiceImpl class which has all the business logic to calculate the rewards and talks with
-    database using the RewardsRepository.
+2. **Spending above $100:**
+   - Users earn **2 reward points** per dollar spent **above $100**.
+   - Example: If a user spends **$120**, they earn **((120 - 100) * 2) + 50 = 90 points**.
 
-**Application also has GlobalException handling which captures all the runtime exceptions and returns a custom error
-    response.
+## Database
+- The application uses an **H2 in-memory database**.
+- Sample data is loaded at startup using a `data.sql` file.
 
-**Unit testing tests the service layer of application by mocking the Repository layer. And Integration testing tests the
-    end-to-end working of application.
+## API Endpoints (RewardsController)
+The application provides three REST endpoints for reward calculations:
+
+1. **`GET /lifetime` (getLifetimeRewards)**
+   - Calculates the total and month-wise reward points for a user over their **entire lifetime**.
+   - **Query Parameter:** `userId`
+
+2. **`GET /lastThreeMonths` (getLastThreeMonthRewards)**
+   - Calculates the total and month-wise reward points for a user over the **last three months**.
+   - **Query Parameter:** `userId`
+
+3. **`GET /specifiedPeriod` (getRewardsForGivenPeriod)**
+   - Calculates the total and month-wise reward points for a user within a **specified time period**.
+   - **Query Parameters:** `userId`, `startDate`, `endDate`
+
+## Service Layer
+- The **`RewardsServiceImpl`** class contains the business logic for reward calculations.
+- It interacts with the database through the **`RewardsRepository`**.
+
+## Global Exception Handling
+- The application includes **global exception handling** to catch runtime exceptions and return **custom error responses**.
+
+## Testing
+- **Unit Testing:**
+  - Tests the **service layer** using mocks for the repository layer.
+- **Integration Testing:**
+  - Tests the **end-to-end functionality** of the application.
+
+## Getting Started
+### Prerequisites
+- Java 21 or later
+- Maven
+
+### Running the Application
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/spring-boot-rewards.git
+   cd spring-boot-rewards
+   ```
+2. Build the project:
+   ```sh
+   mvn clean install
+   ```
+3. Run the application:
+   ```sh
+   mvn spring-boot:run
+   ```
+4. Access H2 Database Console:
+   - URL: `http://localhost:8080/h2-console`
+   - JDBC URL: `jdbc:h2:mem:testdb`
+   - Username: `sa`
+   - Password: (leave blank)
+
+### API Testing
+- You can test the API using **Postman** or **cURL**.
+- Example request:
+   ```sh
+   curl -X GET "http://localhost:8080/lifetime?userId=1"
+   ```
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
