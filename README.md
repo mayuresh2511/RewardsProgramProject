@@ -79,10 +79,10 @@ The application provides one REST endpoint which calculates the rewards based on
 
 ### API Testing
 - You can test the API using **Postman** or **cURL**.
-- Example request GET /calculateRewards:
-   ```sh
-   curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=LIFETIME"
-   ```
+  - Example request GET /calculateRewards:
+     ```sh
+     curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=LIFETIME"
+     ```
 - Example request GET /calculateRewards:
    ```sh
    curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=LASTTHREEMONTHS"
@@ -91,3 +91,41 @@ The application provides one REST endpoint which calculates the rewards based on
    ```sh
    curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=CUSTOMIZE&startDate=2025-01-01&endDate=2025-02-28"
    ```
+     ```json
+      {
+          "userId": "Mayuresh",
+          "monthWiseRewards": {
+              "JANUARY-2025": 1650,
+              "FEBRUARY-2025": 210
+          },
+          "totalRewards": 1860,
+          "transactions": [
+              {
+              "transactionId": 1,
+              "tranAmt": 100.00,
+              "tranDate": "2025-01-22"
+              },
+              {
+              "transactionId": 12,
+              "tranAmt": 500.00,
+              "tranDate": "2025-01-19"
+              },
+              {
+              "transactionId": 19,
+              "tranAmt": 450.00,
+              "tranDate": "2025-01-30"
+              },
+              {
+              "transactionId": 5,
+              "tranAmt": 60.00,
+              "tranDate": "2025-02-04"
+              },
+              {
+              "transactionId": 11,
+              "tranAmt": 175.00,
+              "tranDate": "2025-02-20"
+              }
+          ],
+          "rewardsAsOn": "2025-02-24"
+      }
+     ```
