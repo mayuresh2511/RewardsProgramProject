@@ -1,6 +1,6 @@
 package com.maymar.rewards.program.exception;
 
-import com.maymar.rewards.program.exception.custom.InvalidUserIdException;
+import com.maymar.rewards.program.exception.custom.InvalidRequestParameterException;
 import com.maymar.rewards.program.exception.custom.NoTransactionsFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +14,13 @@ import java.util.NoSuchElementException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidUserIdException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidUserIdException(InvalidUserIdException invalidUserIdException){
+    @ExceptionHandler(InvalidRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRequestParameterException(InvalidRequestParameterException invalidRequestParameterException){
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 "1000",
-                invalidUserIdException.getMessage(),
-                "Please enter userId in a valid format...");
+                invalidRequestParameterException.getMessage(),
+                "Please enter request parameters in valid format");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_ACCEPTABLE);
     }
 
