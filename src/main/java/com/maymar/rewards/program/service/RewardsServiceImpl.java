@@ -2,7 +2,6 @@ package com.maymar.rewards.program.service;
 
 import com.maymar.rewards.program.dto.RewardsResponseDto;
 import com.maymar.rewards.program.entity.CustomerTransactionsEntity;
-import com.maymar.rewards.program.exception.custom.InvalidUserIdException;
 import com.maymar.rewards.program.exception.custom.NoTransactionsFoundException;
 import com.maymar.rewards.program.repository.RewardsRepository;
 import org.springframework.stereotype.Service;
@@ -23,10 +22,6 @@ public class RewardsServiceImpl implements RewardsService{
 
     @Override
     public RewardsResponseDto calculateLifetimeRewards(String userId) {
-
-        if (userId.trim().isEmpty() || userId.trim().length() > 20)
-            throw new InvalidUserIdException("Please enter a valid userId. Non empty and less than 20 chars..");
-
         List<CustomerTransactionsEntity> customerTransactions = rewardsRepository.
                 findByUserId(userId).
                 orElseThrow();
@@ -41,20 +36,13 @@ public class RewardsServiceImpl implements RewardsService{
     public RewardsResponseDto calculateRewardsForLastThreeMonths(String userId) {
 
         return calculateRewardsForGivenPeriod(userId,
-                LocalDate.now().minusMonths(3).toString(),
-                LocalDate.now().toString()
+                LocalDate.now().minusMonths(3),
+                LocalDate.now()
         );
     }
 
     @Override
-    public RewardsResponseDto calculateRewardsForGivenPeriod(String userId, String startDateString, String endDateString) {
-
-        if (userId.trim().isEmpty() || userId.trim().length() > 20)
-            throw new InvalidUserIdException("Please enter a valid userId. Non empty and less than 20 chars..");
-
-        LocalDate startDate = LocalDate.parse(startDateString);
-        LocalDate endDate = LocalDate.parse(endDateString);
-
+    public RewardsResponseDto calculateRewardsForGivenPeriod(String userId, LocalDate startDate, LocalDate endDate) {
         List<CustomerTransactionsEntity> customerTransactions = rewardsRepository.
                 findByUserIdAndDateRange(userId, startDate, endDate).
                 orElseThrow();
@@ -82,13 +70,7 @@ public class RewardsServiceImpl implements RewardsService{
                             return entry.getValue()
                                     .stream()
                                     .filter(transaction -> transaction.getTranAmt() > 50)
-                                    .map((transaction) -> {
-                                        if (transaction.getTranAmt() < 100) {
-                                            return transaction.getTranAmt() - 50;
-                                        } else {
-                                            return ((transaction.getTranAmt() - 100) * 2) + 50;
-                                        }
-                                    }).mapToInt(Integer::intValue).sum();
+                                    .map(RewardsServiceImpl::rewardsCalculator).mapToInt(Integer::intValue).sum();
                         })
                 );
 
@@ -97,5 +79,13 @@ public class RewardsServiceImpl implements RewardsService{
                 resultMap.values().stream().mapToInt(Integer::intValue).sum(),
                 LocalDate.now()
         );
+    }
+
+    private static int rewardsCalculator(CustomerTransactionsEntity transaction) {
+        if (transaction.getTranAmt() < 100) {
+            return transaction.getTranAmt() - 50;
+        } else {
+            return ((transaction.getTranAmt() - 100) * 2) + 50;
+        }
     }
 }
