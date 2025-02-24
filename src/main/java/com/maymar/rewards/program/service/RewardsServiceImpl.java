@@ -57,7 +57,7 @@ public class RewardsServiceImpl implements RewardsService{
         return processAndPrepareResponse(customerTransactions, userId);
     }
 
-    private static RewardsResponseDto processAndPrepareResponse(List<CustomerTransactionsEntity> customerTransactions, String userId) {
+    private RewardsResponseDto processAndPrepareResponse(List<CustomerTransactionsEntity> customerTransactions, String userId) {
         //To Group the Transactions By Month-Year pair
         Map<String, List<CustomerTransactionsEntity>> groupedByMonth = customerTransactions.stream()
                 .collect(Collectors.groupingBy(
@@ -69,18 +69,20 @@ public class RewardsServiceImpl implements RewardsService{
         //To Get The total for each Month-Year pair
         Map<String, Integer> resultMap = new HashMap<>();
         List<Transaction> transactionList = new ArrayList<>();
+        int rewardPoint;
 
         for (Map.Entry<String, List<CustomerTransactionsEntity>> entry : groupedByMonth.entrySet()){
             int monthlyRewards = 0;
             for (CustomerTransactionsEntity transaction : entry.getValue()){
-                if (transaction.getTranAmt().compareTo(new BigDecimal(50)) > 0){
-                    monthlyRewards += rewardsCalculator(transaction);
+                rewardPoint = rewardsCalculator(transaction);
+                if (rewardPoint > 0){
+                    monthlyRewards += rewardPoint;
                     transactionList.add(new Transaction(transaction.getTransactionId(),
                             transaction.getTranAmt(),
                             transaction.getTranDate()));
                 }
-                resultMap.put(entry.getKey(), monthlyRewards);
             }
+            resultMap.put(entry.getKey(), monthlyRewards);
         }
 
         return new RewardsResponseDto(userId,
@@ -91,11 +93,14 @@ public class RewardsServiceImpl implements RewardsService{
         );
     }
 
-    private static int rewardsCalculator(CustomerTransactionsEntity transaction) {
-        if (transaction.getTranAmt().compareTo(new BigDecimal(100)) <= 0) {
+    public int rewardsCalculator(CustomerTransactionsEntity transaction) {
+        if (transaction.getTranAmt().compareTo(new BigDecimal(50)) > 0 &&
+                transaction.getTranAmt().compareTo(new BigDecimal(100)) <= 0) {
             return transaction.getTranAmt().subtract(new BigDecimal(50)).intValue();
-        } else {
+        } else if (transaction.getTranAmt().compareTo(new BigDecimal(100)) > 0){
             return ((transaction.getTranAmt().subtract(new BigDecimal(100)).intValue()) * 2) + 50;
+        }else{
+            return 0;
         }
     }
 }

@@ -2,6 +2,7 @@ package com.maymar.rewards.program.exception;
 
 import com.maymar.rewards.program.exception.custom.InvalidRequestParameterException;
 import com.maymar.rewards.program.exception.custom.NoTransactionsFoundException;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -54,22 +55,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NO_CONTENT);
     }
 
+    @ExceptionHandler(ConversionFailedException.class)
+    public ResponseEntity<ErrorResponse> handleConversionFailedException(ConversionFailedException conversionFailedException){
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                "1003",
+                "Value of 'period' parameter should be 'LIFETIME', 'LASTTHREEMONTHS' or 'CUSTOMIZE'",
+                "Invalid request parameter value...");
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_ACCEPTABLE);
+    }
+
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException nullPointerException){
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 "5001",
                 nullPointerException.getMessage(),
-                "Something went too wrong. Please try again after sometime we are working on it...");
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException runtimeException){
-        ErrorResponse errorResponse = new ErrorResponse(
-                LocalDateTime.now(),
-                "5002",
-                runtimeException.getMessage(),
                 "Something went too wrong. Please try again after sometime we are working on it...");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
