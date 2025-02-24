@@ -17,19 +17,19 @@ This is a simple Spring Boot application that calculates reward points for users
 - Sample data is loaded at startup using a `data.sql` file.
 
 ## API Endpoints (RewardsController)
-The application provides three REST endpoints for reward calculations:
+The application provides one REST endpoint which calculates the rewards based on value of `period` request parameter:
 
-1. **`GET /lifetime` (getLifetimeRewards)**
+1. **`GET /calculateRewards` (period=LIFETIME)**
    - Calculates the total and month-wise reward points for a user over their **entire lifetime**.
-   - **Query Parameter:** `userId`
+   - **Query Parameter:** `userId`, `period`
 
-2. **`GET /lastThreeMonths` (getLastThreeMonthRewards)**
+2. **`GET /calculateRewards` (period=LASTTHREEMONTHS)**
    - Calculates the total and month-wise reward points for a user over the **last three months**.
-   - **Query Parameter:** `userId`
+   - **Query Parameter:** `userId`, `period`
 
-3. **`GET /specifiedPeriod` (getRewardsForGivenPeriod)**
+3. **`GET /calculateRewards` (period=CUSTOMIZE)**
    - Calculates the total and month-wise reward points for a user within a **specified time period**.
-   - **Query Parameters:** `userId`, `startDate`, `endDate`
+   - **Query Parameters:** `userId`, `period`, `startDate`, `endDate`
 
 ## Service Layer
 - The **`RewardsServiceImpl`** class contains the business logic for reward calculations.
@@ -40,7 +40,8 @@ The application provides three REST endpoints for reward calculations:
 
 ## Testing
 - **Unit Testing:**
-  - Tests the **service layer** using mocks for the repository layer.
+    - Tests the **controller layer** using mocks for the service layer.
+    - Tests the **service layer** using mocks for the repository layer.
 - **Integration Testing:**
   - Tests the **end-to-end functionality** of the application.
 
@@ -78,15 +79,15 @@ The application provides three REST endpoints for reward calculations:
 
 ### API Testing
 - You can test the API using **Postman** or **cURL**.
-- Example request GET /lifetime:
+- Example request GET /calculateRewards:
    ```sh
-   curl -X GET "http://localhost:8080/rewards/api/lifetime?userId=Mayuresh"
+   curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=LIFETIME"
    ```
-- Example request GET /lastThreeMonths:
+- Example request GET /calculateRewards:
    ```sh
-   curl -X GET "http://localhost:8080/rewards/api/lastThreeMonths?userId=Mayuresh"
+   curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=LASTTHREEMONTHS"
    ```
-- Example request GET /specifiedPeriod:
+- Example request GET /calculateRewards:
    ```sh
-   curl -X GET "http://localhost:8080/rewards/api/specifiedPeriod?userId=Mayuresh&startDate=2025-01-01&endDate=2025-02-28"
+   curl -X GET "http://localhost:8080/rewards/api/calculateRewards?userId=Mayuresh&period=CUSTOMIZE&startDate=2025-01-01&endDate=2025-02-28"
    ```
