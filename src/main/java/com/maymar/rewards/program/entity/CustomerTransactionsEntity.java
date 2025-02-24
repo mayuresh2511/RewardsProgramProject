@@ -23,7 +23,7 @@ public class CustomerTransactionsEntity {
 
     private String userId;
 
-    private Integer tranAmt;
+    private BigDecimal tranAmt;
 
     private LocalDate tranDate;
 }

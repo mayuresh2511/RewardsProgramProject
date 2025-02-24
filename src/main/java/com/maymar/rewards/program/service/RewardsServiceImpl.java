@@ -1,12 +1,16 @@
 package com.maymar.rewards.program.service;
 
 import com.maymar.rewards.program.dto.RewardsResponseDto;
+import com.maymar.rewards.program.dto.Transaction;
 import com.maymar.rewards.program.entity.CustomerTransactionsEntity;
 import com.maymar.rewards.program.exception.custom.NoTransactionsFoundException;
 import com.maymar.rewards.program.repository.RewardsRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,29 +67,35 @@ public class RewardsServiceImpl implements RewardsService{
                 ));
 
         //To Get The total for each Month-Year pair
-        Map<String, Integer> resultMap = groupedByMonth.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        (entry) -> {
-                            return entry.getValue()
-                                    .stream()
-                                    .filter(transaction -> transaction.getTranAmt() > 50)
-                                    .map(RewardsServiceImpl::rewardsCalculator).mapToInt(Integer::intValue).sum();
-                        })
-                );
+        Map<String, Integer> resultMap = new HashMap<>();
+        List<Transaction> transactionList = new ArrayList<>();
+
+        for (Map.Entry<String, List<CustomerTransactionsEntity>> entry : groupedByMonth.entrySet()){
+            int monthlyRewards = 0;
+            for (CustomerTransactionsEntity transaction : entry.getValue()){
+                if (transaction.getTranAmt().compareTo(new BigDecimal(50)) > 0){
+                    monthlyRewards += rewardsCalculator(transaction);
+                    transactionList.add(new Transaction(transaction.getTransactionId(),
+                            transaction.getTranAmt(),
+                            transaction.getTranDate()));
+                }
+                resultMap.put(entry.getKey(), monthlyRewards);
+            }
+        }
 
         return new RewardsResponseDto(userId,
                 resultMap,
                 resultMap.values().stream().mapToInt(Integer::intValue).sum(),
+                transactionList,
                 LocalDate.now()
         );
     }
 
     private static int rewardsCalculator(CustomerTransactionsEntity transaction) {
-        if (transaction.getTranAmt() < 100) {
-            return transaction.getTranAmt() - 50;
+        if (transaction.getTranAmt().compareTo(new BigDecimal(100)) <= 0) {
+            return transaction.getTranAmt().subtract(new BigDecimal(50)).intValue();
         } else {
-            return ((transaction.getTranAmt() - 100) * 2) + 50;
+            return ((transaction.getTranAmt().subtract(new BigDecimal(100)).intValue()) * 2) + 50;
         }
     }
 }
