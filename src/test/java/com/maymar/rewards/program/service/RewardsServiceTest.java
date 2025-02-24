@@ -2,8 +2,6 @@ package com.maymar.rewards.program.service;
 
 import com.maymar.rewards.program.dto.RewardsResponseDto;
 import com.maymar.rewards.program.entity.CustomerTransactionsEntity;
-import com.maymar.rewards.program.exception.custom.InvalidUserIdException;
-import com.maymar.rewards.program.exception.custom.NoTransactionsFoundException;
 import com.maymar.rewards.program.repository.RewardsRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.DateTimeException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -33,10 +31,10 @@ public class RewardsServiceTest {
     @Test
     public void calculateLifetimeRewardsTest_Should_ReturnsRewardsResponseDTO(){
         List<CustomerTransactionsEntity> transactions = List.of(
-                new CustomerTransactionsEntity(1, "Mayuresh", 200, LocalDate.parse("2025-01-15")),
-                new CustomerTransactionsEntity(2, "Mayuresh", 40, LocalDate.parse("2025-01-20")),
-                new CustomerTransactionsEntity(3, "Mayuresh", 150, LocalDate.parse("2025-02-15")),
-                new CustomerTransactionsEntity(4, "Mayuresh", 350, LocalDate.parse("2025-02-20"))
+                new CustomerTransactionsEntity(1, "Mayuresh", new BigDecimal(200), LocalDate.parse("2025-01-15")),
+                new CustomerTransactionsEntity(2, "Mayuresh", new BigDecimal(40), LocalDate.parse("2025-01-20")),
+                new CustomerTransactionsEntity(3, "Mayuresh", new BigDecimal(150), LocalDate.parse("2025-02-15")),
+                new CustomerTransactionsEntity(4, "Mayuresh", new BigDecimal(350), LocalDate.parse("2025-02-20"))
         );
 
         when(rewardsRepository.findByUserId(Mockito.anyString())).
@@ -45,49 +43,30 @@ public class RewardsServiceTest {
         RewardsResponseDto result = rewardsService.calculateLifetimeRewards("Mayuresh");
 
         Assertions.assertNotNull(result);
-    }
-
-    @Test
-    public void calculateLifetimeRewardsTest_Should_ThrowInvalidUserIdException(){
-
-        Assertions.assertThrows(InvalidUserIdException.class,
-                () -> {
-                    rewardsService.calculateLifetimeRewards("    ");
-                },
-                "Invalid userId format..."
-        );
+        Assertions.assertEquals(2, result.monthWiseRewards().size());
+        Assertions.assertEquals(950, result.totalRewards());
+        Assertions.assertEquals(3, result.transactions().size());
     }
 
     @Test
     public void calculateRewardsForGivenPeriodTest_Should_ReturnsRewardsResponseDTO(){
         List<CustomerTransactionsEntity> transactions = List.of(
-                new CustomerTransactionsEntity(1, "Mayuresh", 200, LocalDate.parse("2025-01-15")),
-                new CustomerTransactionsEntity(2, "Mayuresh", 40, LocalDate.parse("2025-01-20")),
-                new CustomerTransactionsEntity(3, "Mayuresh", 150, LocalDate.parse("2025-02-15")),
-                new CustomerTransactionsEntity(4, "Mayuresh", 350, LocalDate.parse("2025-02-20"))
+                new CustomerTransactionsEntity(1, "Mayuresh", new BigDecimal(200), LocalDate.parse("2025-01-15")),
+                new CustomerTransactionsEntity(2, "Mayuresh", new BigDecimal(40), LocalDate.parse("2025-01-20")),
+                new CustomerTransactionsEntity(3, "Mayuresh", new BigDecimal(150), LocalDate.parse("2025-02-15"))
         );
 
         when(rewardsRepository.findByUserIdAndDateRange(Mockito.anyString(), Mockito.any(LocalDate.class), Mockito.any(LocalDate.class))).
                 thenReturn(Optional.of(transactions));
 
         RewardsResponseDto result = rewardsService.calculateRewardsForGivenPeriod("Mayuresh",
-                "2025-01-01",
-                "2025-02-28");
+                LocalDate.parse("2025-01-01"),
+                LocalDate.parse("2025-02-15"));
 
         Assertions.assertNotNull(result);
-    }
-
-    @Test
-    public void calculateRewardsForGivenPeriodTest_Should_ThrowsDateTimeException(){
-
-        Assertions.assertThrows(DateTimeException.class,
-                () -> {
-                    rewardsService.calculateRewardsForGivenPeriod("Mayuresh",
-                    "2025-01-01",
-                    "2025-02-30");
-                },
-                "Entered date is not valid..."
-        );
+        Assertions.assertEquals(2, result.monthWiseRewards().size());
+        Assertions.assertEquals(400, result.totalRewards());
+        Assertions.assertEquals(2, result.transactions().size());
     }
 
     @Test
@@ -100,10 +79,34 @@ public class RewardsServiceTest {
         Assertions.assertThrows(NoSuchElementException.class,
                 () -> {
                     rewardsService.calculateRewardsForGivenPeriod("Mayuresh",
-                            "2025-01-01",
-                            "2025-02-28");
+                            LocalDate.parse("2025-01-01"),
+                            LocalDate.parse("2025-02-28"));
                 },
                 "No records for given user and period..."
         );
+    }
+
+    @Test
+    public void rewardsCalculatorTest_Should_ReturnRewardsPoints250(){
+        CustomerTransactionsEntity customerTransaction = new CustomerTransactionsEntity(1,
+                "Mayuresh",
+                new BigDecimal(200),
+                LocalDate.parse("2025-01-15"));
+
+        int rewardPoints = rewardsService.rewardsCalculator(customerTransaction);
+
+        Assertions.assertEquals(250, rewardPoints);
+    }
+
+    @Test
+    public void rewardsCalculatorTest_Should_ReturnRewardsPoints0(){
+        CustomerTransactionsEntity customerTransaction = new CustomerTransactionsEntity(1,
+                "Mayuresh",
+                new BigDecimal(50),
+                LocalDate.parse("2025-01-15"));
+
+        int rewardPoints = rewardsService.rewardsCalculator(customerTransaction);
+
+        Assertions.assertEquals(0, rewardPoints);
     }
 }
